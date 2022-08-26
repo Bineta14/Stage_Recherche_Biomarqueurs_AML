@@ -1,0 +1,438 @@
+---
+title: "stage recherche de biomarqueurs 01"
+author: "Bineta  Faye"
+date: "3/2/2022"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Analyses sur les tissus normaux (jeu de données 02 : Tissue_specific_genes)
+
+## les gènes spécifiques 
+
+```{r}
+Tissue <- read.csv("~/Downloads/Tissue_specific_genes.csv", header=TRUE, sep=";")
+head(Tissue)
+dim(Tissue)
+length(unique(Tissue$gene_symbol))
+```
+Au depart nous avons $7507$ gènes.
+
+On représente le nombre de gène dans chacun de leur tissu prédominant.
+```{r}
+par( cex.axis=0.5)
+labels=unique(Tissue$tissue_L1)
+plot(table(Tissue$tissue_L1),xaxt="n",ylab = "count genes",main="Nombre de gènes in tissues prédominants \n avant selection L1")
+axis(1, at=1:length(labels), labels=labels, las=2)
+```
+
+
+```{r,fig.width=5,fig.height=2}
+par( cex.axis=0.7,srt=70)
+#par( cex.axis=0.5)
+labels=unique(Tissue$tissue_L2)
+cols=rep("black",length(labels))
+cols[length(cols)-2]="green"
+plot(table(Tissue$tissue_L2),xaxt="n",ylab = "count genes",col=cols,ylim=c(0,3000),cex.lab=1,cex.axis=1)#,lab.col=c("grey","grey"))#,main="Nombre de gènes in tissues prédominants ",cex.main=0.9)
+axis(1, at=1:length(labels), labels=labels, las=2,cex=3)
+```
+
+On supprime les gènes prédominant dans les cellules sanguines (entre autre dans hematopoietic).
+```{r}
+x=c()
+for(i in 1:dim(Tissue)[1]){
+  if(Tissue$tissue_L2[i]=="hematopoietic")
+    x=c(x,i)}
+Tissue=Tissue[-(x),]
+dim(Tissue)
+unique(Tissue$tissue_L2)
+```
+
+## Affichage de la densité de Zscore, SNRT et SRR aux deux niveaux 
+```{r}
+## Z_scores
+par(mfrow=c(1,2))
+hist(Tissue$Z_L1,probability = TRUE,main="density of Z_score L1")
+hist(Tissue$Z_L2,probability = TRUE,main="density of Z_score L2")
+### SNR
+par(mfrow=c(1,2))
+hist(Tissue$SNR_L1[Tissue$SNR_L1<6000],probability = TRUE,breaks=15,main="density of SNR_L1")
+hist(Tissue$SNR_L2[Tissue$SNR_L2<6000],probability = TRUE,breaks=15,main="density of SNR_L2")
+### SRR
+par(mfrow=c(1,2))
+hist(Tissue$SRR_L1[Tissue$SRR_L1<5000],probability = TRUE,breaks=10,main="density of SRR_L1")
+hist(Tissue$SRR_L2[Tissue$SRR_L2<5000],probability = TRUE,breaks=10,main="density of SRR_L2")
+```
+
+
+```{r}
+plot(Tissue$Z_L1,pch=20,main="Z score L1")
+plot(Tissue$SNR_L1,pch=19,col="blue",main="SNR_L1")
+plot(Tissue$SRR_L1,ylim=c(0,3000),pch=19,col="light green",main="SRR_L1")
+abline(h=5,lty=2)
+```
+
+Elaboration de la liste des gènes en se basant sur SRR_L1( on prend que les gènes dont SRR_L1 $>5.0$).
+**On part avec  $7507$ gènes différents et à la fin du premier filtrage on obtient $3902$ gènes.**
+```{r}
+library(tidyr)
+par( cex.axis=0.5,srt=70)
+list_L1=data.frame(id_gene=Tissue$id_gene[Tissue$SRR_L1>5],gene=Tissue$gene_symbol[Tissue$SRR_L1>5],tissue_L1=Tissue$tissue_L1[Tissue$SRR_L1>5],tissue_L2=Tissue$tissue_L2[Tissue$SRR_L1>5],exp_BM=Tissue$REF_L1[Tissue$SRR_L1>5])
+list_L1=drop_na(list_L1)
+plot(table(list_L1$tissue_L1),las=2,ylab="count genes",main="Nombre de gènes in tissus prédominants \n Après première selection  L1")
+plot(table(list_L1$tissue_L2),las=2,ylab="count genes",main="Nombre de gènes in tissus prédominants \n Après première selection  L2")
+paste0("Le nombre de gènes vérifaint SRR_L1 >5.0 : ",length(unique(list_L1$gene)))
+```
+
+
+Elaboration de la liste des gènes en se basant sur SRR_L2(à valider)
+```{r}
+par( cex.axis=0.5,srt=70)
+list_L2=data.frame(id_gene=Tissue$id_gene[Tissue$SRR_L2>5],gene=Tissue$gene_symbol[Tissue$SRR_L2>5],tissue_L2=Tissue$tissue_L2[Tissue$SRR_L2>5])
+#plot(table(list_L2$tissue_L2),las=2)
+paste0("Le nombre de gènes vérifaint SRR_L2 >5.0 : ",length(unique(list_L2$gene)))
+```
+
+
+## calcule de la moyenne d'expresion dans bonne Marrow non tumoral
+On réalise ce calcul avec list_L1
+```{r}
+(seuil=mean(list_L1$exp_BM) + 2*sqrt(var(list_L1$exp_BM)))
+```
+
+
+## jeu de données cancer   8888888!!!!!!!!!!!!!!!!!!!!!
+```{r}
+data_GSE13159<-read.csv("~/Downloads/expression_data_GSE13159_GSE13159_log_expression_2096_samples_21875_genes.csv", header=TRUE, sep=";")
+head(data_GSE13159)
+dim(data_GSE13159)
+```
+
+## Phase 2
+```{r}
+x=c()
+for(i in 1:dim(data_GSE13159)[1]){
+  for(j  in 1:dim(list_L1)[1])
+    if(data_GSE13159$id_gene[i]==list_L1$id_gene[j]){
+      x=c(x,i)
+      break}}
+```
+
+
+```{r}
+list_data_GSE13159=data_GSE13159[x,]
+dim(list_data_GSE13159)
+head(list_data_GSE13159)
+```
+
+### Chargement de la corespondance
+```{r,warning=FALSE}
+cores=readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.15_GSE13159.xlsx")
+#head(cores)
+dim(cores)
+cores_data=rbind(data.frame(cores[cores$tissue_status=="normal",]),data.frame(cores[cores$morphology=="Acute myeloid leukemia, NOS",]))
+dim(cores_data)
+head(cores_data)
+plot(table(cores_data$tissue_status))
+```
+
+On a choisi les echantillons d'AML et normaux puis 
+On range d'abord notre jeu de données en
+-74 echantillons normaux d'abord 
+-542 echantillons tumoraux ensuite
+
+```{r}
+m=dim(list_data_GSE13159)[2] 
+x=c()
+for(i in 1:length(cores_data$id_sample)){
+  for(j  in 3:m)
+    if((!is.na(cores_data$id_sample[i])) & (cores_data$id_sample[i]==colnames(list_data_GSE13159)[j]) ){
+      x=c(x,j)
+      break}}
+list1_data_GSE13159=data.frame(id_gene=list_data_GSE13159$id_gene,gene_symbol=list_data_GSE13159$gene_symbol,list_data_GSE13159[,x])
+```
+
+on calcule le seuil mean+ 2sd dans BM normal et qui calcule la frequence d'activation(>mean + 2sd) dans les cellules tumorales.
+
+```{r}
+list1_data_GSE13159[2958,]=c(data_GSE13159$id_gene[data_GSE13159$gene_symbol=="FAM171B"], "FAM171B",data_GSE13159[data_GSE13159$gene_symbol=="FAM171B",x])
+list1_data_GSE13159[2959,]=c(data_GSE13159$id_gene[data_GSE13159$gene_symbol=="SLITRK5"], "SLITRK5",data_GSE13159[data_GSE13159$gene_symbol=="SLITRK5",x])
+head(list1_data_GSE13159)
+dim(list1_data_GSE13159)
+```
+
+#Représentation des gènes sélectionnées dans l'etape 1 
+```{r}
+#image(as.matrix(list1_data_GSE13159[,3:618]),col = c(1,2))
+```
+
+## Calcul de la fréquence d'activation dans les AML
+On a 74 echantillons normaux et 542 echantillons tumoraux.
+
+```{r}
+frequence=data.frame(matrix(ncol=5))
+colnames(frequence)=c("id_gene","gene_symbol","seuil_BM_normal","freq_BM_tumoral","pourcentile_tumoral")
+for(i in 1:dim(list1_data_GSE13159)[1]){
+  frequence[i,"id_gene"]=list1_data_GSE13159[i,"id_gene"]
+  frequence[i,"gene_symbol"]=list1_data_GSE13159[i,"gene_symbol"]
+  frequence[i,3]=apply(list1_data_GSE13159[i,3:76],1,mean)+2*apply(list1_data_GSE13159[i,3:76],1,sd)
+  frequence[i,4]=length(which(list1_data_GSE13159[i,-(1:76)]>frequence$seuil_BM_normal[i]))*100/542
+  frequence[i,5]=100 - frequence[i,4]
+  }
+head(frequence)
+dim(frequence)
+write.csv(frequence,"frequence.csv")
+```
+
+## Les gènes qui s'activent dans plus de 10% des echantillons tumoraux dataset GSE13159
+```{r}
+#length(frequence$gene_symbol[frequence$freq_BM_tumoral>10])
+list2_data=frequence[frequence$freq_BM_tumoral>10,]
+#list2_data=list2_data[list2_data$freq_BM_normal<2,]
+#list2_data=list2_data[list2_data$seuil_BM_normal<4,]
+#list2_data=list2_data[list2_data$mean_exp_tumeur>3.5,]
+write.csv(list2_data,"list_etape2.csv")
+x=c()
+y=c()
+for(i in 1:dim(list1_data_GSE13159)[1]){
+  for(j  in 1:dim(list2_data)[1])
+    if(list2_data$id_gene[j]==list1_data_GSE13159$id_gene[i]){
+      x=c(x,i)
+      y=c(y,j)
+      break}}
+data_etape2=list1_data_GSE13159[x,]
+seuil=list2_data$seuil_BM_normal[y]
+dim(data_etape2)
+```
+
+###
+```{r,fig.width=2,fig.height=2}
+#par(mfrow=c(2,2))
+list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="FAM171B",]
+### On représente l'expression du gène FAM171B dans les tissus normaux et tumoraux
+cas=c(rep(3,74),rep(4,542))
+couleur=c(rep("green",74))
+for(i in (1:542)){
+  if(list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="FAM171B",-(1:76)][i]<frequence$seuil_BM_normal[frequence$gene_symbol=="FAM171B"])
+    couleur=c(couleur,"blue")
+  else 
+    couleur=c(couleur,"red")
+}
+
+plot(cas,list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="FAM171B",-(1:2)],xlim = c(2.5,5),col=couleur,main="FAM171B  GSE13159",pch=20,xaxt="n",cex.main=0.8,ylab="expression level",xlab = "")
+abline(h=frequence$seuil_BM_normal[frequence$gene_symbol=="FAM171B"],col="grey",lty=3,lwd=3)
+axis(1,at=c(3,4), labels=c("BM normal \n n=74","AML \n n=542"))
+text(4.2,3.2,paste0(round(frequence$pourcentile_tumoral[frequence$gene_symbol=="FAM171B"],2),"%"),col="blue",cex=0.85)
+text(4.2,5.2,paste0(round(frequence$freq_BM_tumoral[frequence$gene_symbol=="FAM171B"],2),"%"),col="red",cex=0.85)
+text(2.6,4,"m2sd",col="GREY",cex=0.85)
+legend(x="topleft",legend=c("expression in BM normal","expression in AML>m2sd","expression in AML<m2sd ","m2sd"),col=c("green","red","blue","GREY"),pch = c(20,20,20))
+
+```
+
+```{r}
+#par(mfrow=c(1,2))
+list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="SLITRK5",]
+### On représente l'expression du gène   SL... dans les tissus normaux et tumoraux
+cas=c(rep(3,74),rep(4,542))
+couleur=c(rep("green",74))
+for(i in (1:542)){
+  if(list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="SLITRK5",-(1:76)][i]<frequence$seuil_BM_normal[frequence$gene_symbol=="SLITRK5"])
+    couleur=c(couleur,"blue")
+  else 
+    couleur=c(couleur,"red")
+}
+plot(cas,list1_data_GSE13159[list1_data_GSE13159$gene_symbol=="SLITRK5",-(1:2)],xlim = c(2.5,5),col=couleur,ylab="",main="SLITRK5 GSE13159",pch=20,xaxt="n")
+abline(h=frequence$seuil_BM_normal[frequence$gene_symbol=="SLITRK5"],col="grey",lty=2)
+axis(1,at=c(3,4), labels=c("normal \n n=74","tumoral \n n=542"))
+text(4.2,3.2,paste0(round(frequence$pourcentile_tumoral[frequence$gene_symbol=="SLITRK5"],2),"%"),col="blue",cex=0.85)
+text(4.2,5.2,paste0(round(frequence$freq_BM_tumoral[frequence$gene_symbol=="SLITRK5"],2),"%"),col="red",cex=0.85)
+```
+
+
+On représente les gènes qui sont complètement éteints dans les tissus normaux.
+Pour nous en ligne nous avons les gènes en ordonnées les échantillons en commençant avec les echantillons normaux.
+### ici on binarise les données d'expression des gènes(data_etape2) avec le seuil m2sd avant de représenter l'image.
+```{r}
+n=dim(data_etape2)[1]
+b=matrix(ncol = dim(data_etape2)[2],nrow = n)
+for(i in 1:n){
+  b[i,]=as.numeric(data_etape2[1,]>seuil[i])}
+```
+
+
+## Ne pas pas réexécuter 888888888888!!!!!!!!!!!!!!!!!!
+```{r}
+a=b[,3:618]
+a=a[-(60:100),-(300:615)]
+a=a[-(200:345),]
+#a=a[-(1:50),]
+a=a[-(100:149),]
+dim(a)
+#data=list(x=1:99,y=1:299,z=as.matrix(a))
+image(t(a),breaks = c(-0.5,0.5,1.5),col=c("red","black"),xlab = "tissus",ylab = "gènes",axes=FALSE)
+```
+
+
+```{r}
+a=as.matrix(data_etape2[,3:618])
+a=a[-(60:100),-(300:615)]
+a=a[-(200:345),]
+a=a[-(1:50),]
+a=a[-(100:149),]
+dim(a)
+#data=list(x=1:99,y=1:299,z=as.matrix(a))
+image(t(a),col=c("black","red"),xlab = "tissus",ylab = "gènes",axes=FALSE)
+```
+
+## on utilise ici pheatmap
+```{r}
+library(pheatmap)
+pheatmap(a,col=c("black","red"))
+```
+
+
+
+## Modèle de cox univarié  et test du logrank: on explique la survie par l'expression de chaque gène de la liste de l'étape 2.
+dataset GSE106291
+
+```{r}
+data_GSE106291 <- read.csv("~/Downloads/expression_data_GSE106291_GSE106291_log_rpkm_250_samples_21047_genes.csv",header=TRUE,sep=";")
+head(data_GSE106291)
+cores_GSE106291=readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.22_GSE106291.xlsx")
+head(cores_GSE106291)
+```
+
+
+```{r}
+dim(data_GSE106291)
+dim(cores_GSE106291)
+#data_gsea_GSE106291=data_GSE106291
+#dim(data_gsea_GSE106291)
+```
+
+
+```{r,fig.width=2.5,fig.height=2.5}
+## on range les colonnes dans le même ordre d'apparition que dans le jeu de correspondance::)
+x=c()
+for(i in 1:length(cores_GSE106291$id_sample)){
+  for(j  in 3:length(colnames(data_GSE106291)))
+    if(cores_GSE106291$id_sample[i]==colnames(data_GSE106291)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_GSE106291=data_GSE106291[,x]
+unique(colnames(data_GSE106291)[3:252]==cores_GSE106291$id_sample)
+head(data_GSE106291)
+
+data_gsea_GSE106291=data_GSE106291
+dim(data_gsea_GSE106291)
+
+#head(cores_GSE106291)
+############ on filtre pour ne garder que les gènes de la liste 2.
+x=c()
+y=c()
+for(i in 1:dim(list2_data)[1]){
+  for(j  in 1:dim(data_GSE106291)[1])
+    if(data_GSE106291$id_gene[j]==list2_data$id_gene[i]){
+      x=c(x,j)
+      y=c(y,i)
+      break}}
+data_GSE106291=data_GSE106291[x,]
+
+
+list2.2_data=list2_data[y,]
+dim(data_GSE106291)
+dim(list2.2_data)
+##################################################################
+##################################################################
+## Cox et log rank pour chaque gène
+
+library(survival)
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+
+data_cox=data.frame(matrix(ncol=4))
+data_logrank=data.frame(matrix(ncol=3))
+colnames(data_cox)=c("id_gene","gene_symbol","exp_beta","pval_cox")
+colnames(data_logrank)=c("id_gene","gene_symbol","pval_logrank")
+for(i in 1:dim(data_GSE106291)[1]){
+  data_cox[i,"id_gene"]=data_GSE106291[i,"id_gene"]
+  data_cox[i,"gene_symbol"]=data_GSE106291[i,"gene_symbol"]
+  model_cox=summary(coxph(formula = base~as.double(data_GSE106291[i,-(1:2)])))
+  data_cox[i,3]=round( model_cox$coefficients[2],7)
+  data_cox[i,4]=round(model_cox$coefficients[5],7)
+  
+  #############################################################
+  data_logrank[i,"id_gene"]=data_GSE106291[i,"id_gene"]
+  data_logrank[i,"gene_symbol"]=data_GSE106291[i,"gene_symbol"]
+  #############################################################
+  ## on binarise l'expression pour le test du log rank en utilisant le pourcentile pour introduire le seuil
+  exp_bin=as.numeric(as.double(data_GSE106291[i,-(1:2)])>quantile(as.double(data_GSE106291[i,-(1:76)]),list2.2_data$pourcentile_tumoral[i]/100))
+  #######
+  if(length(unique(exp_bin))!=1)
+    data_logrank[i,3]=round(1-pchisq(survdiff(base~exp_bin,rho=0)$chisq,1),7)
+  else
+    data_logrank[i,3]=NA
+    }
+#head(data_cox)
+library(tidyr)
+data_cox=drop_na(data_cox)
+### on ajuste les pvaleurs de cox avec la methode de benjamini Hochberg
+
+x=sort(data_cox$pval_cox,index=TRUE)
+pval_cox_adj=p.adjust(x$x,"fdr")
+data_cox=data_cox[x$ix,]
+data_cox$pval_cox_adj=pval_cox_adj
+data_cox
+#dim(data_cox[data_cox$pval_cox<0.05,])
+##############################################################
+data_logrank=drop_na(data_logrank)
+### on ajuste les pvaleurs de cox avec la methode de benjamini Hochberg
+x=sort(data_logrank$pval_logrank,index=TRUE)
+pval_logrank_adj=p.adjust(x$x,"fdr")
+data_logrank=data_logrank[x$ix,]
+data_logrank$pval_logrank_adj=pval_logrank_adj
+data_logrank
+
+#############################################################
+plot(data_cox$pval_cox_adj,type = "l",col=3,ylab="pvaleurs ajustées",xlab="gènes",cex.lab=1,cex.axis=1,lwd=3)
+lines(data_logrank$pval_logrank_adj,col=4,lwd=3)
+abline(h=0.25,lty=2,col=2,lwd=3)
+legend(x="topleft", legend=c("p.adj cox","p.adj logrank","seuil 25%"), col=c("3","4","2"),lty=c(1,1,2),lwd=3,cex=1.5)
+dim(data_cox)
+```
+
+
+
+### preparation des données pour ectopy
+## on prend les 10 gènes dont la fdr < 25%.
+
+```{r}
+gene_pour_ectopy=data.frame(id_sample=colnames(data_GSE106291)[-(1:2)],
+             SLITRK5=as.double(data_GSE106291[data_GSE106291$gene_symbol=="SLITRK5",-(1:2)]),
+             MAP6D1=as.double(data_GSE106291[data_GSE106291$gene_symbol=="MAP6D1",-(1:2)]),
+             FAM171B=as.double(data_GSE106291[data_GSE106291$gene_symbol=="FAM171B",-(1:2)]),
+             SLC8A3=as.double(data_GSE106291[data_GSE106291$gene_symbol=="SLC8A3",-(1:2)]),
+             MLF1=as.double(data_GSE106291[data_GSE106291$gene_symbol=="MLF1",-(1:2)]),     
+             SDK2=as.double(data_GSE106291[data_GSE106291$gene_symbol=="SDK2",-(1:2)]),  
+             CCNA1=as.double(data_GSE106291[data_GSE106291$gene_symbol=="CCNA1",-(1:2)]),  
+             DDIT4L=as.double(data_GSE106291[data_GSE106291$gene_symbol=="DDIT4L",-(1:2)]),  
+             TNNT1=as.double(data_GSE106291[data_GSE106291$gene_symbol=="TNNT1",-(1:2)]),  
+             ADSS1=as.double(data_GSE106291[data_GSE106291$gene_symbol=="ADSS1",-(1:2)])
+             )
+write.csv(gene_pour_ectopy,"data.csv")
+
+b=data.frame(id_sample=cores_GSE106291$id_sample,group=cores_GSE106291$tissue_status,time=as.double(cores_GSE106291$os_months),event=cores_GSE106291$os_censor)
+write.csv(b,"expgroup.csv")
+```
+
+
+
+

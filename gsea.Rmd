@@ -1,0 +1,443 @@
+---
+title: "gsea"
+author: "Bineta  Faye"
+date: "6/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Préparation des données: calcul des rank 
+## Groupes  GEC0 et GEC3-5 pour l'analyse GSEA.
+
+```{r}
+head(gec_GSE106291)
+## on commence par prendre tous les échantillons du groupe 0 et du groupe 3-5
+```
+
+## On  crée une fonction qui calcule les rank pour chaque gène dans nos deux groupes.
+On prend la formule approximative du log2 de fold change:
+log2(fold change) = mean(log_expression(GEC3-5)) - mean(log_expression (GEC0))
+Et concrètement on prend les echantillons dant le groupe GEC0 et GEC 3-5.
+
+```{r}
+  cores_gsea= cores[cores$GEC5_3!="1-2",]
+  x=c()
+for(i in 1:length(cores_gsea$id_sample)){
+  for(j  in 3:length(colnames(data)))
+    if(cores_gsea$id_sample[i]==colnames(data)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_gsea=data[,x]
+```
+
+
+## Données en log rpkm
+```{r,warning=FALSE}
+rank=function(data,cores){
+  ## on commence par récupérer les echantillons dans les deux groupes
+###########################
+rank=c()
+for(i in 1:dim(data)[1]){
+  x0=cores$id_sample[cores$GEC5_3=="0"]
+  x3_5=cores$id_sample[cores$GEC5_3=="3-5"]
+  #if(unique(is.na(as.double(data[i,x3_5])))==FALSE & unique(is.na(as.double(data[i,x0])))==FALSE){
+    rank[i]=mean(as.double(data[i,x3_5]))-mean(as.double(data[i,x0]))
+}
+x=sort(rank,index=TRUE,decreasing = TRUE)
+return(data.frame(gene=data$gene_symbol[x$ix],rank=x$x))
+}
+
+data_gsea_GSE106291=drop_na(data_gsea_GSE106291)
+rank_GSE106291=rank(data_gsea_GSE106291,cores_GSE106291)
+rank(data_BEATAML,cores_BEATAML)
+#rank_BEATAML=rank(data_BEATAML,cores_BEATAML)
+#rank_TCGA_LAML=rank(data_TCGA_LAML,cores_TCGA_LAML)
+#rank_target_aml=rank(data_target_aml,cores_target_aml)
+```
+
+## sortie des fichiers.rnk pour le logiciel gsea
+```{r}
+write_delim(rank_GSE106291,"~/Desktop/Stage_biomarqueurs/rank_GSE106291.rnk",delim="\t")
+write_delim(rank_BEATAML,"~/Desktop/Stage_biomarqueurs/rank_BEATAML.rnk",delim="\t")
+write_delim(rank_TCGA_LAML,"~/Desktop/Stage_biomarqueurs/rank_TCGA_LAML.rnk",delim="\t")
+write_delim(rank_target_aml,"~/Desktop/Stage_biomarqueurs/rank_target_aml.rnk",delim="\t")
+```
+
+## Récupération des ensembles de gènes qui sont significatifs dans tous les datasets
+
+On prend les genes sets pour les quels la p-value (<0.05), FDR (<0.25).
+## Enrichissement d'abord
+NES > 0 : le geneset est enrichi dans le groupe GEC3-5 (par rapport au groupe GEC0)
+```{r,warning=FALSE}
+nas_pos_GSE106291=read_delim("gsea_GSE106291/GSEA_GSE106291.GseaPreranked.1654199625941/gsea_report_for_na_pos_1654199625941.tsv")
+nas_pos_BEATAML=read_delim("gsea_BEATAML/GSEA_BEATAML.GseaPreranked.1654205778400/gsea_report_for_na_pos_1654205778400.tsv")
+nas_pos_TCGA_LAML=read_delim("gsea_TCGA_LAML/GSEA_TCGA_LAML.GseaPreranked.1654207838151/gsea_report_for_na_pos_1654207838151.tsv")
+nas_pos_target_aml=read_delim("gsea_target_aml/GSEA_target_aml.GseaPreranked.1654211216725/gsea_report_for_na_pos_1654211216725.tsv")
+head(nas_pos_GSE106291)
+head(nas_pos_BEATAML)
+head(nas_pos_TCGA_LAML)
+head(nas_pos_target_aml)
+```
+## on filtre déjà les genesets non significatifs
+```{r}
+nas_pos_GSE106291=nas_pos_GSE106291[nas_pos_GSE106291$`NOM p-val`<0.05,]
+nas_pos_GSE106291=nas_pos_GSE106291[nas_pos_GSE106291$`FDR q-val`<0.25,]
+
+nas_pos_BEATAML=nas_pos_BEATAML[nas_pos_BEATAML$`NOM p-val`<0.05,]
+nas_pos_BEATAML=nas_pos_BEATAML[nas_pos_BEATAML$`FDR q-val`<0.25,]
+
+nas_pos_TCGA_LAML=nas_pos_TCGA_LAML[nas_pos_TCGA_LAML$`NOM p-val`<0.05,]
+nas_pos_TCGA_LAML=nas_pos_TCGA_LAML[nas_pos_TCGA_LAML$`FDR q-val`<0.25,]
+
+nas_pos_target_aml=nas_pos_target_aml[nas_pos_target_aml$`NOM p-val`<0.05,]
+nas_pos_target_aml=nas_pos_target_aml[nas_pos_target_aml$`FDR q-val`<0.25,]
+```
+
+## AAA
+On cree un data frame contenant tous les genesets significatifs dans nos 3 cohortes.
+On ecarte pour le moment target aml car il n'y a que deux groupes significatifs
+
+```{r} 
+x=c()
+for(i in 1:dim(nas_pos_GSE106291)[1]){
+  y=c()
+  for(j in 1:dim(nas_pos_BEATAML)[1]){
+    if(nas_pos_GSE106291$NAME[i]==nas_pos_BEATAML$NAME[j]){
+      y=c(y,j)
+      break}}
+    for(j in 1:dim(nas_pos_TCGA_LAML)[1]){
+    if(nas_pos_GSE106291$NAME[i]==nas_pos_TCGA_LAML$NAME[j]){
+      y=c(y,j)
+      break}}
+  if(length(y)==2)
+    x=c(x,i)
+}
+
+data_gsea_pos=nas_pos_GSE106291[x,]
+write_csv(data_gsea_pos,"gsea_pos.csv")
+## on a 1337 genesets significatifs dans les trois datasets
+```
+
+### Analyse différentielle
+
+## Avec deseq2
+On cree une fonction qui prépare les données pour la fonction deseq
+```{r,warning=FALSE}
+data_deseq=function(data,cores){
+  ## on commence par récupérer les echantillons dans les deux groupes
+###########################
+x=c()
+y=c() 
+nombre_gec0=0
+for(i in 1:dim(cores)[1]){
+  if(cores$GEC5_3[i]=="0"){
+      x=c(x,i) 
+      nombre_gec0=nombre_gec0+1
+      }
+  if( cores$GEC5_3[i]=="3-5")
+    y=c(y,i)
+     
+  }
+  #x=c(x,cores$id_sample[i])
+return(list(data.frame(cbind(data[,x+2],data[,y+2])),data.frame(rbind(cores[x,],cores[y,])),nombre_gec0))
+}
+```
+
+
+```{r}
+convert.magic <- function(obj,types){
+    for (i in 1:length(obj)){
+        FUN <- switch(types[i],character = as.character, 
+                                   numeric = as.numeric, 
+                                   factor = as.factor,
+                                    integer=as.integer)
+        obj[,i] <- FUN(obj[,i])
+    }
+    obj
+}
+```
+
+## GSE106291 
+44 gec0 et 59 gec3_5
+```{r}
+deseq1_GSE106291=data_deseq(data_gsea_GSE106291,cores_GSE106291)[1]
+deseq2_GSE106291=data_deseq(data_gsea_GSE106291,cores_GSE106291)[2]  
+#head(deseq1_GSE106291)
+data_deseq(data_gsea_GSE106291,cores_GSE106291)[3] 
+
+count_GSE106291=convert.magic(as.data.frame(deseq1_GSE106291,row.names = data_gsea_GSE106291[,2]),rep('integer',103))
+head(count_GSE106291)
+library(tidyr)
+count_GSE106291=drop_na(count_GSE106291)
+```
+
+```{r,fig.height=2.5,fig.width=2.5}
+image(as.matrix(count_GSE106291),col=c(1,2))
+```
+
+
+```{r}
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(countData=count_GSE106291, 
+                              colData=as.data.frame(deseq2_GSE106291), 
+                              design=~GEC5_3)
+dds <- DESeq(dds)
+```
+
+
+```{r,fig.height=2.5,fig.width=2.5}
+#par(mfrow=c(1,2))
+res=results(dds)
+with(res, plot(log2FoldChange, -log10(pvalue), pch=19,col=" dark grey",xlim=c(-2,2),main="volcano plot GSE106291"))
+with(subset(res, (padj<0.25 & log2FoldChange>0.5)), points(log2FoldChange, -log10(pvalue), pch=19, col="red"))
+with(subset(res,(padj<0.25 & (log2FoldChange < (-0.5)))), points(log2FoldChange, -log10(pvalue), pch=19, col="blue"))
+#abline(h=-log10(0.05))
+```
+
+```{r}
+#library(tidyverse)
+#d=data.frame(gene=rownames(res), padj=res$padj)
+#DE_genes <- d %>%
+  #as.data.frame() %>%
+  #filter(padj <= 0.25) %>%
+  #tidyverse::pull(gene)
+mat_hm <- assay(rlog(dds))
+pheatmap::pheatmap(mat_hm,)
+```
+
+
+## Beataml
+
+```{r}
+deseq1_BEATAML=as.data.frame(data_deseq(data_BEATAML,cores_BEATAML)[1])
+deseq2_BEATAML=as.data.frame(data_deseq(data_BEATAML,cores_BEATAML)[2] ) 
+n_beataml=data_deseq(data_BEATAML,cores_BEATAML)[3] ## noble d'échantillons dans le groupe gec0
+head(deseq1_BEATAML)
+### on réalise un test de Mann whitney pour le jeu de données BEATAML
+deseq1_BEATAML=convert.magic(as.data.frame(deseq1_BEATAML,row.names = data_BEATAML$gene_symbol),rep('numeric',202))
+head(deseq1_BEATAML)
+
+```
+```{r,fig.height=2,fig.width=2.5}
+shapiro.test(as.double(deseq1_BEATAML[6728,1:88]))
+shapiro.test(as.double(deseq1_BEATAML[6728,89:202]))
+shapiro.test(as.double(deseq1_BEATAML[2316,1:88]))
+shapiro.test(as.double(deseq1_BEATAML[2316,89:202]))
+#x=seq(-4,1,length.out = 88)
+#lines(dnorm(x,mean(x),var(x)),col="purple",add=TRUE)
+par(mfrow=c(3,2))
+hist(as.double(deseq1_BEATAML[6728,1:88]),main=paste0(rownames(deseq1_BEATAML)[6728]," BEATAML GEC0"),xlab = "",col=" white",col.main="blue")
+hist(as.double(deseq1_BEATAML[6728,89:202]),main=paste0(rownames(deseq1_BEATAML)[6728]," BEATAML GEC3-5"),xlab = "",col="white",col.main="red")
+###
+hist(as.double(deseq1_BEATAML[2316,1:88]),main=paste0(rownames(deseq1_BEATAML)[2316]," BEATAML GEC0"),xlab = "",col=" white",col.main="blue")
+hist(as.double(deseq1_BEATAML[2316,89:202]),main=paste0(rownames(deseq1_BEATAML)[2316]," BEATAML GEC3-5"),xlab = "",col="white",col.main="red")
+###
+hist(as.double(deseq1_BEATAML[4001,1:88]),main=paste0(rownames(deseq1_BEATAML)[4001]," BEATAML GEC0"),xlab = "",col=" white",col.main="blue")
+hist(as.double(deseq1_BEATAML[4001,89:202]),main=paste0(rownames(deseq1_BEATAML)[4001]," BEATAML GEC3-5"),xlab = "",col="white",col.main="red")
+```
+
+## test de wilcoxon
+
+```{r}
+vec_gec_beataml=c(rep("0",88),rep("3-5",114))
+diff_BEATAML=as.data.frame(matrix(ncol=2))
+colnames(diff_BEATAML)=c("gene_symbol","pvalue")
+for(i in 1:dim(deseq1_BEATAML)[1]){
+  d=wilcox.test(as.double(deseq1_BEATAML[i,])~vec_gec_beataml)
+  diff_BEATAML[i,1]=rownames(deseq1_BEATAML)[i]
+  diff_BEATAML[i,2]=d$p.value
+}
+```
+
+## Volcano plot BEATAML
+
+```{r}
+x=c()
+for(i in 1:dim(rank_BEATAML)[1]){
+  for(j in 1:dim(diff_BEATAML)[1])
+    if(diff_BEATAML$gene_symbol[j]==rank_BEATAML$gene[i]){
+      x=c(x,j)
+      break}}
+diff_BEATAML=diff_BEATAML[x,]
+
+```
+## On ordonnes les pvaleurs 
+```{r}
+y=sort(diff_BEATAML$pvalue,index=TRUE)
+diff_BEATAML=diff_BEATAML[y$ix,]
+rank_BEATAML=rank_BEATAML[y$ix,]
+```
+
+
+```{r,fig.height=2.5,fig.width=2.5}
+## calcul de la fdr
+pvaladj_diff_BEATAML=p.adjust(diff_BEATAML$pvalue,method = "BH")
+diff_BEATAML$pvaladj=pvaladj_diff_BEATAML
+diff_BEATAML$foldchange=rank_BEATAML$rank
+head(diff_BEATAML)
+plot(diff_BEATAML$foldchange,-log10(diff_BEATAML$pvalue),pch=19,ylab="-log10(pvalue)",col="grey",main="volcano plot Mann-Whitney \n BEATAML",ylim=c(0,35))
+with(subset(diff_BEATAML, (pvaladj<0.05 & foldchange>0.5)), points(foldchange, -log10(pvalue), pch=19, col="red"))
+with(subset(diff_BEATAML,(pvaladj<0.05 & (foldchange < (-0.5)))), points(foldchange, -log10(pvalue), pch=19, col="blue"))
+```
+
+```{r}
+plot(diff_BEATAML$foldchange,-log10(diff_BEATAML$pvaladj),pch=19,ylab="-log10(pvalue)",col="grey",main="volcano plot Mann-Whitney \n BEATAML")
+```
+
+
+
+## Mann Whitney sur GSE106291
+## GSE106291
+
+```{r,fig.height=2,fig.width=2.5}
+deseq1_GSE106291=as.data.frame(data_deseq(data_gsea_GSE106291,cores_GSE106291)[1])
+deseq2_GSE106291=as.data.frame(data_deseq(data_gsea_GSE106291,cores_GSE106291)[2] ) 
+n_beataml=data_deseq(data_gsea_GSE106291,cores_GSE106291)[3] ## noble d'échantillons dans le groupe gec0
+head(deseq1_GSE106291)
+### on réalise un test de Mann whitney pour le jeu de données BEATAML
+deseq1_GSE106291=convert.magic(as.data.frame(deseq1_GSE106291,row.names = data_gsea_GSE106291$gene_symbol),rep('numeric',103))
+head(deseq1_GSE106291)
+## test de wilcoxon
+vec_gec_GSE106291=c(rep("0",44),rep("3-5",59))
+diff_GSE106291=as.data.frame(matrix(ncol=2))
+colnames(diff_GSE106291)=c("gene_symbol","pvalue")
+for(i in 1:dim(deseq1_GSE106291)[1]){
+  if(unique(is.na(as.double(deseq1_GSE106291[i,])))==FALSE){
+  d=wilcox.test(as.double(deseq1_GSE106291[i,])~vec_gec_GSE106291)
+  diff_GSE106291[i,1]=rownames(deseq1_GSE106291)[i]
+  diff_GSE106291[i,2]=d$p.value}
+  else{
+      diff_GSE106291[i,1]=rownames(deseq1_GSE106291)[i]
+     diff_GSE106291[i,2]=1}
+    }
+## Volcano plot GSE106291
+x=c()
+for(i in 1:dim(rank_GSE106291)[1]){
+  for(j in 1:dim(diff_GSE106291)[1])
+    if(diff_GSE106291$gene_symbol[j]==rank_GSE106291$gene[i]){
+      x=c(x,j)
+      break}}
+diff_GSE106291=diff_GSE106291[x,]
+
+##On ordonne les pvaleurs 
+x=sort(diff_GSE106291$pvalue,index=TRUE)
+diff_GSE106291=diff_GSE106291[x$ix,]
+rank_GSE106291=rank_GSE106291[x$ix,]
+## calcul de la fdr
+pvaladj_diff_GSE106291=p.adjust(diff_GSE106291$pvalue,method = "BH")
+diff_GSE106291$pvaladj=pvaladj_diff_GSE106291
+diff_GSE106291$foldchange=rank_GSE106291$rank
+head(diff_GSE106291)
+plot(diff_GSE106291$foldchange,-log10(diff_GSE106291$pvalue),pch=19,ylab="-log10(pvalue)",col="grey",main="volcano plot Mann-Whitney \n GSE106291",xlim = c(-2,2))
+with(subset(diff_GSE106291,(pvalue<0.05 & (foldchange < (-0.25)))), points(foldchange, -log10(pvalue), pch=19, col="blue"))
+with(subset(diff_GSE106291, (pvalue<0.05 & foldchange>0.55)), points(foldchange, -log10(pvalue), pch=19, col="red"))
+```
+
+
+
+```{r}
+library(DESeq2)
+dds_BEATAML <- DESeqDataSetFromMatrix(countData=count_BEATAML, 
+                              colData=as.data.frame(deseq2_BEATAML), 
+                              design=~GEC5_3)
+dds_BEATAML <- DESeq(dds_BEATAML)
+```
+```{r,fig.height=2.5,fig.width=2.5}
+res_BEATAML=results(dds_BEATAML)
+with(res_BEATAML, plot(log2FoldChange, -log10(pvalue), pch=19, main="",col=" dark grey"))
+with(subset(res_BEATAML, (padj<0.25 & log2FoldChange >0) ), points(log2FoldChange, -log10(pvalue), pch=19, col="blue"))
+with(subset(res_BEATAML, padj<0.25 & log2FoldChange<0), points(log2FoldChange, -log10(pvalue), pch=19, col="red"))
+#abline(h=-log10(0.25))
+```
+
+## TCGA LAML
+
+```{r}
+deseq1_tcga=data_deseq(data_TCGA_LAML,cores_TCGA_LAML)[1]
+deseq2_tcga=data_deseq(data_TCGA_LAML,cores_TCGA_LAML)[2]  
+#head(deseq1_GSE106291)
+
+count_tcga=convert.magic(as.data.frame(deseq1_tcga),rep('integer',202))
+library(tidyr)
+count_tcga=drop_na(count_tcga)
+head(count_tcga)
+```
+
+
+```{r}
+library(DESeq2)
+dds_tcga <- DESeqDataSetFromMatrix(countData=count_tcga, 
+                              colData=as.data.frame(deseq2_tcga), 
+                              design=~GEC5_3)
+dds_tcga <- DESeq(dds_tcga)
+```
+
+
+```{r,fig.height=2.5,fig.width=2.5}
+res_tcga=results(dds_tcga)
+with(res_tcga, plot(log2FoldChange, -log10(pvalue), pch=19 ,main="volcano plot TCGA LAML",col=" dark grey"))
+with(subset(res_tcga, (padj<0.25 & log2FoldChange >0) ), points(log2FoldChange, -log10(pvalue), pch=19, col="red"))
+with(subset(res_tcga, padj<0.25 & log2FoldChange<0), points(log2FoldChange, -log10(pvalue), pch=19, col="blue"))
+#abline(h=-log10(0.25))
+```
+
+
+## GSE37642
+
+```{r}
+deseq1_GSE37642=data_deseq(data_GSE37642,cores_TCGA_LAML)[1]
+deseq2_GSE37642=data_deseq(data_TCGA_LAML,cores_TCGA_LAML)[2]  
+#head(deseq1_GSE106291)
+
+count_tcga=convert.magic(as.data.frame(deseq1_tcga),rep('integer',202))
+library(tidyr)
+count_tcga=drop_na(count_tcga)
+head(count_tcga)
+```
+
+```{r}
+library(DESeq2)
+dds_tcga <- DESeqDataSetFromMatrix(countData=count_tcga, 
+                              colData=as.data.frame(deseq2_tcga), 
+                              design=~GEC5_3)
+dds_tcga <- DESeq(dds_tcga)
+```
+
+
+```{r,fig.height=2.5,fig.width=2.5}
+res_tcga=results(dds_tcga)
+with(res_tcga, plot(log2FoldChange, -log10(pvalue), pch=19 ,main="volcano plot TCGA LAML",col=" dark grey"))
+with(subset(res_tcga, (padj<0.25 & log2FoldChange >0) ), points(log2FoldChange, -log10(pvalue), pch=19, col="red"))
+with(subset(res_tcga, padj<0.25 & log2FoldChange<0), points(log2FoldChange, -log10(pvalue), pch=19, col="blue"))
+#abline(h=-log10(0.25))
+```
+
+
+
+
+
+
+
+
+
+
+
+## test de Man-Whitney
+Le test U de Mann-Whitney est souvent utilisé comme solution alternative
+à l’utilisation d’un test de Student (t-test) dans le cas où les
+données ne sont pas distribuées selon une loi normale.
+
+```{r}
+
+```
+
+
+
+
+
+
+
