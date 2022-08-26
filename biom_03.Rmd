@@ -1,0 +1,1124 @@
+---
+title: "functions"
+author: "Bineta  Faye"
+date: "3/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+## dataset BEATAML_10...
+```{r}
+library(readr)
+data_BEATAML<- read_delim("~/Downloads/expression_data_beataml_nature_BEATAML10-COHORT-NATURE-2018_log_rpkm_672_samples_19254_genes.csv", delim = ";")
+head(data_BEATAML)
+cores_BEATAML<- readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.15_BEATAML10-COHORT-NATURE-2018.xlsx")
+dim(data_BEATAML)
+dim(cores_BEATAML)
+head(cores_BEATAML)
+```
+## on range les colonnes dans le même ordre d'apparition que dans le jeu de correspondance::)
+```{r}
+x=c()
+for(i in 1:length(cores_BEATAML$id_sample)){
+  for(j  in 3:length(colnames(data_BEATAML)))
+    if(cores_BEATAML$id_sample[i]==colnames(data_BEATAML)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_BEATAML=data_BEATAML[,x]
+unique(colnames(data_BEATAML)[3:674]==cores_BEATAML$id_sample)
+head(data_BEATAML)
+```
+
+## on enlève tous les échantillons du dataset BEATAML dont on a aucune information :)
+## Et il nous reste 451 échantillons informatifs.
+```{r,warning=FALSE}
+x=c()
+for(i in 1:length(colnames(data_BEATAML))){
+    if(is.na(unique(data_BEATAML[,i])))
+      x=c(x,i)}
+```
+
+
+```{r}
+data_BEATAML=data_BEATAML[,-x]
+```
+
+```{r}
+head(data_BEATAML)
+dim(data_BEATAML)
+dim(cores_BEATAML)
+```
+
+```{r}
+x=x-2
+cores_BEATAML=cores_BEATAML[-x,]
+head(cores_BEATAML)
+```
+
+## dataset  GSE146173
+246 echantillons tumoraux !!!
+```{r}
+data_GSE146173<- read_delim("~/Downloads/expression_data_GSE146173_GSE146173_log_rpkm_246_samples_23950_genes.csv",delim = ";")
+head(data_GSE146173)
+cores_GSE146173<- readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.22_GSE146173.xlsx")
+dim(data_GSE146173)
+dim(cores_GSE146173)
+```
+## dataset  TCGA LAML
+```{r}
+library(readr)
+data_TCGA_LAML=read_delim("~/Downloads/expression_data_tcga_laml_TCGA-LAML_log_fpkm_197_samples_38220_genes.csv",delim = ";")
+dim(data_TCGA_LAML)
+cores_TCGA_LAML=readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.22_TCGA-LAML.xlsx")
+dim(cores_TCGA_LAML)
+head(data_TCGA_LAML)
+head(cores_TCGA_LAML)
+```
+
+```{r,warning=FALSE}
+###############################
+x=c()
+for(i in 1:length(cores_TCGA_LAML$id_sample)){
+  for(j  in 3:length(colnames(data_TCGA_LAML)))
+    if(cores_TCGA_LAML$id_sample[i]==colnames(data_TCGA_LAML)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_TCGA_LAML=data_TCGA_LAML[,x]
+unique(colnames(data_TCGA_LAML)[-(1:2)]==cores_TCGA_LAML$id_sample)
+###############################
+x=c()
+for(i in 1:length(colnames(data_TCGA_LAML))){
+    if(is.na(unique(data_TCGA_LAML[,i])))
+      x=c(x,i)}
+data_TCGA_LAML=data_TCGA_LAML[,-x]
+###############################
+x=x-2
+cores_TCGA_LAML=cores_TCGA_LAML[-x,]
+head(data_TCGA_LAML)
+head(cores_TCGA_LAML)
+dim(data_TCGA_LAML)## reste 151 échantillons
+dim(cores_TCGA_LAML)
+```
+
+## dataset  B-ALL
+```{r}
+library(readr)
+data_ALL=read_delim("~/Downloads/expression_data_prj_proall_chen_PROALL_CHEN_log_deseq_397_samples_25793_genes.csv",delim = ";")
+dim(data_ALL)
+cores_ALL=readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.06.11_PROALL_CHEN.xlsx")
+dim(cores_ALL)
+head(data_ALL)
+head(cores_ALL)
+```
+
+```{r,warning=FALSE}
+###############################
+x=c()
+for(i in 1:length(cores_ALL$id_sample)){
+  for(j  in 3:length(colnames(data_ALL)))
+    if(cores_ALL$id_sample[i]==colnames(data_ALL)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_ALL=data_ALL[,x]
+unique(colnames(data_ALL)[-(1:2)]==cores_ALL$id_sample)
+###############################
+x=c()
+for(i in 1:length(colnames(data_ALL))){
+    if(is.na(unique(data_ALL[,i])))
+      x=c(x,i)}
+data_ALL=data_ALL[,-x]
+###############################
+x=x-2
+cores_ALL=cores_ALL[-x,]
+head(data_ALL)
+head(cores_ALL)
+dim(data_ALL)## reste 151 échantillons
+dim(cores_ALL)
+```
+
+
+
+
+## dataset target AML
+```{r}
+library(readr)
+data_target_aml=read_delim("~/Downloads/expression_data_target_aml_TARGET-AML_log_fpkm_207_samples_40416_genes.csv",delim = ";")
+dim(data_target_aml)
+cores_target_aml=readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.05.27_TARGET-AML.xlsx")
+dim(cores_target_aml)
+head(data_target_aml)
+head(cores_target_aml)
+```
+
+```{r,warning=FALSE}
+###############################
+## rangement
+x=c()
+for(i in 1:length(cores_target_aml$id_sample)){
+  for(j  in 3:length(colnames(data_target_aml)))
+    if(cores_target_aml$id_sample[i]==colnames(data_target_aml)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_target_aml=data_target_aml[,x]
+unique(colnames(data_target_aml)[-(1:2)]==cores_target_aml$id_sample)
+###############################
+```
+
+## dataset TANSCRI CHUGA
+# 100 échantillons informatifs.
+```{r}
+data_TRANSCRI_CHU<- read_delim("~/Downloads/expression_data_transcri_lam_chuga_TRANSCRI-LAM-CHUGA_log_rpkm_100_samples_25441_genes.csv",delim = ";")
+head(data_TRANSCRI_CHU)
+cores_TRANSCRI_CHU<- readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.22_TRANSCRI-LAM-CHUGA.xlsx")
+dim(data_TRANSCRI_CHU)
+dim(cores_TRANSCRI_CHU)
+head(cores_TRANSCRI_CHU)
+```
+
+
+```{r,warning=FALSE}
+###############################
+x=c()
+for(i in 1:length(cores_TRANSCRI_CHU$id_sample)){
+  for(j  in 3:length(colnames(data_TRANSCRI_CHU)))
+    if(cores_TRANSCRI_CHU$id_sample[i]==colnames(data_TRANSCRI_CHU)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_TRANSCRI_CHU=data_TRANSCRI_CHU[,x]
+unique(colnames(data_TRANSCRI_CHU)[-(1:2)]==cores_TRANSCRI_CHU$id_sample)
+###############################
+dim(data_TRANSCRI_CHU)
+```
+
+
+## dataset GSE37642
+```{r}
+library(readr)
+data_GSE37642<- read_delim("~/Downloads/expression_data_GSE37642_GSE37642_log_expression_984_samples_21875_genes.csv", delim = ";")
+head(data_GSE37642)
+cores_GSE37642<- readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.22_GSE37642.xlsx")
+dim(data_GSE37642)
+dim(cores_GSE37642)
+head(cores_GSE37642)
+```
+## on range les colonnes dans le même ordre d'apparition que dans le jeu de correspondance::)
+```{r}
+x=c()
+for(i in 1:length(cores_GSE37642$id_sample)){
+  for(j  in 3:length(colnames(data_GSE37642)))
+    if(cores_GSE37642$id_sample[i]==colnames(data_GSE37642)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_GSE37642=data_GSE37642[,x]
+unique(colnames(data_GSE37642)[3:674]==cores_GSE37642$id_sample)
+head(data_GSE37642)
+```
+## Et pareil ici aussi on supprime les échantillons n'apportant pas d'information
+
+## on enlève tous les échantillons du dataset GSE37642 dont on a aucune information :)
+## Et il nous reste 142 échantillons informatifs.
+```{r,warning=FALSE}
+x=c()
+for(i in 1:length(colnames(data_GSE37642))){
+    if(is.na(unique(data_GSE37642[,i])))
+      x=c(x,i)}
+```
+
+
+```{r}
+data_GSE37642=data_GSE37642[,-x]
+x=x-2
+cores_GSE37642=cores_GSE37642[-x,]
+head(data_GSE37642)
+dim(data_GSE37642)
+```
+
+
+
+## dataset GSE71014
+```{r}
+data_GSE71014<- read.csv("~/Downloads/expression_data_GSE71014_GSE71014_log_expression_104_samples_30500_genes.csv", header=TRUE, sep=";")
+head(data_GSE71014)
+cores_GSE71014<- readxl::read_xlsx("~/Downloads/EpiMed_experimental_grouping_2022.03.24_GSE71014.xlsx")
+dim(data_GSE71014)
+dim(cores_GSE71014)
+head(cores_GSE71014)
+```
+
+
+## On crée une fonction pour  calculer les pval de cox dans nos autres jeu de données:
+```{r}
+cox_univarie=function(data,cores){
+data_GSE106291=data
+cores_GSE106291=cores
+## on range les colonnes dans le même ordre d'apparition que dans le jeu de de correspondance::)
+x=c()
+for(i in 1:length(cores_GSE106291$id_sample)){
+  for(j  in 3:length(colnames(data_GSE106291)))
+    if(cores_GSE106291$id_sample[i]==colnames(data_GSE106291)[j]){
+      x=c(x,j)
+      break}}
+x=c(1,2,x)
+data_GSE106291=data_GSE106291[,x]
+#unique(colnames(data_GSE106291)[3:length(colnames(data_GSE106291))]==cores_GSE106291$id_sample)
+head(data_GSE106291)
+#head(cores_GSE106291)
+############ on filtre pour ne garder que les gènes de la liste 2.
+x=c()
+y=c()
+for(i in 1:dim(list2_data)[1]){
+  for(j  in 1:dim(data_GSE106291)[1])
+    if(data_GSE106291$id_gene[j]==list2_data$id_gene[i]){
+      x=c(x,j)
+      y=c(y,i)
+      break}}
+data_GSE106291=data_GSE106291[x,]
+list2.2_data=list2_data[y,]
+dim(data_GSE106291)
+dim(list2.2_data)
+##################################################################
+##################################################################
+## Cox et log rank pour chaque gène
+library(survival)
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+
+data_cox=data.frame(matrix(ncol=4))
+data_logrank=data.frame(matrix(ncol=3))
+colnames(data_cox)=c("id_gene","gene_symbol","exp_beta","pval_cox")
+colnames(data_logrank)=c("id_gene","gene_symbol","pval_logrank")
+for(i in 1:dim(data_GSE106291)[1]){
+  data_cox[i,"id_gene"]=data_GSE106291[i,"id_gene"]
+  data_cox[i,"gene_symbol"]=data_GSE106291[i,"gene_symbol"]
+  model_cox=summary(coxph(formula = base~as.double(data_GSE106291[i,-(1:2)])))
+  data_cox[i,3]=model_cox$coefficients[2]
+  data_cox[i,4]=model_cox$coefficients[5]
+  ################################################
+  data_logrank[i,"id_gene"]=data_GSE106291[i,"id_gene"]
+  data_logrank[i,"gene_symbol"]=data_GSE106291[i,"gene_symbol"]
+  ## on binarise l'expression pour le test du log rank en utilisant le pourcentile pour introduire le seuil
+  exp_bin=as.numeric(as.double(data_GSE106291[i,-(1:2)])>quantile(as.double(data_GSE106291[i,-(1:2)]),list2.2_data$pourcentile_tumoral[i]/100))
+  #######
+  if(length(unique(exp_bin))!=1)
+    data_logrank[i,3]=1-pchisq(survdiff(base~exp_bin,rho=0)$chisq,1)
+  else
+    data_logrank[i,3]=NA
+    }
+library(tidyr)
+data_cox=drop_na(data_cox)
+### on ajuste les pvaleurs de cox avec la methode de benjamini Hochberg
+x=sort(data_cox$pval_cox,index=TRUE)
+pval_cox_adj=p.adjust(x$x,"fdr")
+data_cox=data_cox[x$ix,]
+data_cox$pval_cox_adj=pval_cox_adj
+#dim(data_cox[data_cox$pval_cox<0.05,])
+###############################################
+data_logrank=drop_na(data_logrank)
+### on ajuste les pvaleurs de cox avec la methode de benjamini Hochberg
+x=sort(data_logrank$pval_logrank,index=TRUE)
+pval_logrank_adj=p.adjust(x$x,"fdr")
+data_logrank=data_logrank[x$ix,]
+data_logrank$pval_logrank_adj=pval_logrank_adj
+return(list(data_cox,data_logrank))
+}
+```
+
+
+```{r}
+test_GSE146173=cox_univarie(data_GSE146173,cores_GSE146173)
+#test_TCGA_LAML=cox_univarie(data_TCGA_LAML,cores_TCGA_LAML)
+#test_GSE71014=cox_univarie(data_GSE71014,cores_GSE71014)
+#test_BEATAML=cox_univarie(data_BEATAML,cores_BEATAML)
+#test_GSE37642=cox_univarie(data_GSE37642,cores_GSE37642)
+```
+
+
+## comparaison de la survie entre les datasets BEATAML et GSE106291 et GSE37642
+
+## d'abord BEATAML & GSE106291 
+```{r}
+library(survival)
+os_months=c(as.double(cores_GSE106291$os_months),as.double(cores_BEATAML$os_months))
+os_censor=c(as.numeric(cores_GSE106291$os_censor),as.numeric(cores_BEATAML$os_censor))
+groupe=c(cores_GSE106291$main_gse_number,cores_BEATAML$main_gse_number)
+Age=c(as.double(cores_GSE106291$age_min),as.double(cores_BEATAML$age_min))
+base1=Surv(os_months,os_censor)
+## cox
+coxph(formula = base1~groupe)
+##
+model1=survfit(base1~groupe)
+plot(model1,col=c("red","blue"),main="Comparaison de survie BEATAML & GSE106291\n pval cox 1.744e-05")
+legend(x="topright", legend=c("BEATAML","GSE106291"), col=c("red","blue"),lty=1)
+boxplot(Age~groupe)
+by(Age,groupe,mean)
+## moyenne d'age dans le jeu de données Beataml : 56.95536
+```
+## concordance index:
+Que calcule t_on exactement ?
+```{r,warning=FALSE}
+data_index=data.frame(os_months,os_censor,groupe)
+model1=coxph(Surv(os_months,os_censor)~groupe,data_index)
+concord=survConcordance(Surv(os_months, os_censor) ~ predict(model1, data_index), data_index)
+concord$concordance
+```
+
+
+## GSE37642 & GSE106291 
+```{r}
+library(survival)
+os_months=c(as.double(cores_GSE106291$os_months),as.double(cores_GSE37642$os_months))
+os_censor=c(as.numeric(cores_GSE106291$os_censor),as.numeric(cores_GSE37642$os_censor))
+groupe=c(cores_GSE106291$main_gse_number,cores_GSE37642$main_gse_number)
+base2=Surv(os_months,os_censor)
+## cox
+coxph(formula = base2~groupe)
+##
+model1=survfit(base2~groupe)
+plot(model1,col=c(1,3),main="Comparaison de survie GSE37642 & GSE106291\n pval cox 0.0392 ")
+legend(x="topright", legend=c("GSE106291","GSE37642"), col=c(1,3),lty=1)
+```
+
+## Survie dans les trois dataset:
+
+```{r}
+library(survival)
+os_months=c(as.double(cores_BEATAML$os_months),as.double(cores_GSE106291$os_months),as.double(cores_GSE37642$os_months))
+os_censor=c(as.numeric(cores_BEATAML$os_censor),as.numeric(cores_GSE106291$os_censor),as.numeric(cores_GSE37642$os_censor))
+groupe=c(cores_BEATAML$main_gse_number,cores_GSE106291$main_gse_number,cores_GSE37642$main_gse_number)
+base3=Surv(os_months,os_censor)
+## cox
+coxph(formula = base3~groupe)
+##
+model3=survfit(base3~groupe)
+plot(model3,col=c(1,3,4),main="Comparaison de survie BEATAML & GSE37642 & GSE106291 \n pval cox 0.0002241")
+legend(x="topright", legend=c("BEATAML","GSE106291","GSE37642"), col=c(1,3,4),lty=1)
+```
+
+
+## informations pratique du dataset GSE106291 
+```{r}
+#nombre d'évenement
+sum(as.numeric(as.numeric(cores_GSE106291$os_censor)==1))
+#nombre d'échantillons 
+length(cores_GSE106291$id_sample)
+```
+
+## seuils adaptatifs des différents gènes par Ectopy.
+```{r}
+seuil_ectopy=data.frame(id_gene=c(data_cox$id_gene[data_cox$pval_cox_adj<0.25],data_cox$id_gene[data_cox$gene_symbol=="ADSS1"]),gene_symbol=c(data_cox$gene_symbol[data_cox$pval_cox_adj<0.25],"ADSS1"),seuil_ectopy_pourcentile=c( 85.2, 85.4, 55.8, 74.8, 54.4 , 69.6 , 85.2 , 53.6,  79.8 , 54.2),HR=c(data_cox$exp_beta[data_cox$pval_cox_adj<0.25],data_cox$exp_beta[data_cox$gene_symbol=="ADSS1"]))
+
+write.csv(seuil_ectopy,"seuil_ectopy.csv")
+seuil_ectopy=seuil_ectopy[-c(2,4,6,7,8),]
+seuil_ectopy
+dim(seuil_ectopy)
+```
+
+## jeu d'entrainement GSE106291
+```{r, fig.width=3,fig.height=2}
+par(mfrow=c(2,3))
+validation_GSE106291=data.frame(matrix(ncol=5))
+colnames(validation_GSE106291)=c("id_gene","gene_symbol","pval_cox","pval_logrank","hazard_ratio")
+library(survival)
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+for(i in 1:dim(seuil_ectopy)[1]){
+  validation_GSE106291[i,1]=seuil_ectopy$id_gene[i]
+  validation_GSE106291[i,2]=seuil_ectopy$gene_symbol[i]
+  val_cox=summary(coxph(formula =         base~as.double(data_GSE106291[data_GSE106291$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])))
+  validation_GSE106291[i,3]=round(val_cox$coefficients[5],7)
+  ## on binarise en utilisant le seuil calculé par ectopy
+  expression_bin=as.numeric(as.double(data_GSE106291[data_GSE106291$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])>quantile(as.double(data_GSE106291[data_GSE106291$gene_symbol==seuil_ectopy$gene_symbol[i],-(1:2)]),seuil_ectopy$seuil_ectopy_pourcentile[i]/100))
+  ##log rank
+  validation_GSE106291[i,4]=round(1-pchisq(survdiff(base~expression_bin,rho=0)$chisq,1),7)
+  model1=survfit(base~expression_bin)
+plot(model1,col=c("blue","red"),main=paste0("\n  Gene ",seuil_ectopy$gene_symbol[i],"\n p_val Cox: ",validation_GSE106291[i,3],"\n p_val logrank : ",round(validation_GSE106291[i,4],7)),cex.main=1.3,cex.axis=0.9,xlab = "Time in months",cex.lab=0.9,ylab ="Overall survival" )
+legend(x="bottomleft", legend=paste0(validation_GSE106291$gene_symbol[i], c(" OFF (n="," ON (n="),model1$n,")"), col=c("blue","red"),lty=1,cex=1)
+  ## cox binaire pour récuperer le hazard ratio
+  validation_GSE106291[i,5]=summary(coxph(formula = base~expression_bin))$coefficients[2]
+}
+validation_GSE106291
+```
+
+
+
+## Validation des biomarqqueurs trouvés dans les datasets BEATAML et GSE37642
+# modeles de cox globale pour chaque gène 
+
+
+## BEATAML
+```{r, fig.width=3,fig.height=2}
+par(mfrow=c(2,3))
+validation_BEATAML=data.frame(matrix(ncol=5))
+colnames(validation_BEATAML)=c("id_gene","gene_symbol","pval_cox","pval_logrank","hazard_ratio")
+library(survival)
+temps=as.double(cores_BEATAML$os_months)
+censure= as.double(cores_BEATAML$os_censor)
+base=Surv(temps,censure)
+for(i in 1:dim(seuil_ectopy)[1]){
+  validation_BEATAML[i,1]=seuil_ectopy$id_gene[i]
+  validation_BEATAML[i,2]=seuil_ectopy$gene_symbol[i]
+  val_cox=summary(coxph(formula =         base~as.double(data_BEATAML[data_BEATAML$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])))
+  validation_BEATAML[i,3]=round(val_cox$coefficients[5],7)
+  ## on binarise en utilisant le seuil calculé par ectopy
+  expression_bin=as.numeric(as.double(data_BEATAML[data_BEATAML$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])>quantile(as.double(data_BEATAML[data_BEATAML$gene_symbol==seuil_ectopy$gene_symbol[i],-(1:2)]),seuil_ectopy$seuil_ectopy_pourcentile[i]/100))
+  ##log rank
+  validation_BEATAML[i,4]=round(1-pchisq(survdiff(base~expression_bin,rho=0)$chisq,1),7)
+  model1=survfit(base~expression_bin)
+plot(model1,col=c("blue","red"),main=paste0("\n Gene ",seuil_ectopy$gene_symbol[i],"\n p_val Cox: ",validation_BEATAML[i,3],"\n p_val logrank : " ,round(validation_BEATAML[i,4],5)),cex.main=1.3,cex.axis=0.9,xlab = "Time in months",cex.lab=0.9,ylab ="Overall survival" )
+legend(x="right", legend=paste0(validation_BEATAML$gene_symbol[i], c(" OFF (n="," ON (n="),model1$n,")"), col=c("blue","red"),lty=1,cex=1)
+  ## cox binaire pour récuperer le hazard ratio
+  validation_BEATAML[i,5]=summary(coxph(formula = base~expression_bin))$coefficients[2]
+}
+validation_BEATAML
+```
+
+D'après les pvaleurs de cox,
+Les gènes qui ne sont pas validé dans le dataset BEATAML sont : SLC8A3 , SDK2 , CCNA1 , DDIT4L.
+
+Le gène MAP6D1 parait significatif mais le hazard ratio vaut 0.86. Donc son activation est favorable à un bon pronostic.
+
+Sinon  tous les 5 autres  sont validés :SLITRK5,FAM171B,MLF1,TNNT1,ADSS1.(pvaleurs plus petites que 5% et hazard ratio >1)
+
+
+## GSE37642
+```{r,fig.width=3,fig.height=2}
+#fig.width=1.2,fig.height=1.2,fig.ext=0.7}
+########################################################
+par(mfrow=c(2,3))
+validation_GSE37642=data.frame(matrix(ncol=5))
+colnames(validation_GSE37642)=c("id_gene","gene_symbol","pval_cox","pval_logrank","hazard_ratio")
+library(survival)
+temps=as.double(cores_GSE37642$os_months)
+censure= as.double(cores_GSE37642$os_censor)
+base=Surv(temps,censure)
+for(i in 1:dim(seuil_ectopy)[1]){
+  validation_GSE37642[i,1]=seuil_ectopy$id_gene[i]
+  validation_GSE37642[i,2]=seuil_ectopy$gene_symbol[i]
+  val_cox=summary(coxph(formula =         base~as.double(data_GSE37642[data_GSE37642$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])))
+  validation_GSE37642[i,3]=round(val_cox$coefficients[5],7)
+  ## on binarise en utilisant le seuil calculé par ectopy
+  expression_bin=as.numeric(as.double(data_GSE37642[data_GSE37642$gene_symbol==seuil_ectopy$gene_symbol[i],][-(1:2)])>quantile(as.double(data_GSE37642[data_GSE37642$gene_symbol==seuil_ectopy$gene_symbol[i],-(1:2)]),seuil_ectopy$seuil_ectopy_pourcentile[i]/100))
+  ##log rank
+  ## on s'assure d'abord d'avoir bien deux groupes
+  if(length(unique(expression_bin))!=1){
+  validation_GSE37642[i,4]=round(1-pchisq(survdiff(base~expression_bin,rho=0)$chisq,1),7)
+  model1=survfit(base~expression_bin)
+plot(model1,col=c("blue","red"),main=paste0("\n Gene ",seuil_ectopy$gene_symbol[i],"\n p_val Cox: ",validation_GSE37642[i,3],"\n p_val logrank : ",round(validation_GSE37642[i,4],5)),cex.main=1.3,cex.axis=0.9,xlab = "Time in months",cex.lab=0.9,ylab ="Overall survival" )
+legend(x="right", legend=paste0(validation_GSE37642$gene_symbol[i], c(" OFF (n="," ON (n="),model1$n,")"), col=c("blue","red"),lty=1,cex=1)
+  ## cox binaire pour récuperer le hazard ratio
+  validation_GSE37642[i,5]=summary(coxph(formula = base~expression_bin))$coefficients[2]}
+}
+validation_GSE37642
+```
+
+Les gènes SLITRK5,FAM171B,TNNT1,ADSS1  sont validé dans le dataset GSE37642(pvaleurs plus petites que 5% et hazard ratio >1).
+
+La pvaleur du gène MLF1 vaut 5%  ...
+
+**Doit on utilser les pourcentiles correspondant pour les seuils déterminés par Copy.**
+
+## Cox multivarié pour les 5 gènes(biomarqueurs trouvés)
+On récupère les 5 gènes dont la pval de cox est < 5% et hazard ratio plus grand que 1.
+
+```{r}
+gene_biomarqueur=validation_BEATAML[validation_BEATAML$pval_cox<0.05,]
+gene_biomarqueur=gene_biomarqueur[gene_biomarqueur$hazard_ratio>1,]
+library(survival)
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+
+cox_5genes=coxph(formula = base~gene_pour_ectopy$SLITRK5+gene_pour_ectopy$FAM171B+gene_pour_ectopy$MLF1+gene_pour_ectopy$TNNT1+gene_pour_ectopy$ADSS1)
+cox_5genes
+```
+## age et CN-AML
+......
+
+
+```{r}
+pie(table(cores_GSE106291$npm1),col=c("grey","green"),main="Mutattion npm1 \n GSE106291",cex.main=1,labels=paste0(c("NO (","YES (" ),c(157,80),")"))
+
+```
+
+```{r}
+library(ggplot2)
+bp<- ggplot(cores_GSE106291, aes(x="",y="", fill=npm1))+
+geom_bar(width = 1, stat = "identity")
+pie <- bp + coord_polar("y", start=0)
+blank_theme <- theme_minimal()+
+  theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.border = element_blank(),
+  panel.grid=element_blank(),
+  axis.ticks = element_blank(),
+  plot.title=element_text(size=14, face="bold")
+  )
+library(scales)
+pie + scale_fill_brewer("Blues") + blank_theme +
+  theme(axis.text.x=element_blank())+
+  geom_text(aes(y = c(table(cores_GSE106291$npm1))/3 + c(0, cumsum(table(cores_GSE106291$npm1))[-length(c(table(cores_GSE106291$npm1)))]), 
+                label = percent(c(table(cores_GSE106291$npm1))/100)), size=5)
+
+
+```
+
+
+## Regardons la corélation entre les gènes
+```{r}
+par(mfrow=c(1,2))
+M=cor(as.matrix(gene_pour_ectopy[,-c(1,3,5,7,8,9)]))
+library(corrplot)
+corrplot(M, type = "upper")
+```
+## gec vs age GSE106291
+```{r}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_1gene_age=summary(coxph(formula = base~gec_GSE106291$number_gene_actif+as.double(cores_GSE106291$age_min)))
+cox_1gene_age
+#cox_1gene_age$waldtest[3]
+```
+
+## gec vs eln2017 GSE106291
+```{r}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_1gene_age=summary(coxph(formula = base~gec_GSE106291$number_gene_actif+cores_GSE106291$eln2017))
+
+cox_1gene_age
+```
+
+## gec vs eln2017(numéric) + age GSE106291
+```{r}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+eln2017_num=c()
+for(i in 1:length(cores_GSE106291$eln2017)){
+  if(!is.na(cores_GSE106291$eln2017[i])){
+  if(cores_GSE106291$eln2017[i]=="favorable")
+    eln2017_num[i]=1
+  else if(cores_GSE106291$eln2017[i]=="Intermediate")
+    eln2017_num[i]=2
+  else if(cores_GSE106291$eln2017[i]=="Adverse")
+    eln2017_num[i]=3} 
+  else 
+    eln2017_num[i]=NA
+}
+cox_1gene_age=summary(coxph(formula = base~gec_GSE106291$number_gene_actif+eln2017_num+as.double(cores_GSE106291$age_min)))
+
+cox_1gene_age$coefficients
+```
+
+
+## Creation du GEC : Gene expression classifier
+On calcule tout d'abord pour chaque patient le nombre de gènes activés parmi les 5 biomarqueurs.
+```{r}
+GEC_5=function(data){
+  number_gene_actif=c()
+  gr2_1=c()
+  gr2_2=c()
+  gr3=c()
+  gr5=c()
+  for(i in 3:dim(data)[2] ){
+    x=c()
+    for(j in 1:5){x=c(x,as.numeric(as.double(data[data$gene_symbol==gene_biomarqueur$gene_symbol[j],i])>quantile(as.double(data[data$gene_symbol==gene_biomarqueur$gene_symbol[j],-(1:2)]),seuil_ectopy$seuil_ectopy_pourcentile[seuil_ectopy$gene_symbol==gene_biomarqueur$gene_symbol[j]]/100)))}
+    number_gene_actif[i-2]=sum(x)
+    if(number_gene_actif[i-2]<1)
+        gr2_1[i-2]="0"
+    else
+        gr2_1[i-2]="1-5"
+    ############################
+    if(number_gene_actif[i-2]<=1)
+        gr2_2[i-2]="0-1"
+    else
+        gr2_2[i-2]="2-5"
+    ############################
+    if(number_gene_actif[i-2]==0)
+        gr3[i-2]="0"
+    else {if(number_gene_actif[i-2]==1 | (number_gene_actif[i-2]==2))
+        gr3[i-2]="1-2"
+      else 
+        gr3[i-2]="3-5"}
+    ##############################
+  ##on rajoute un vecteur contenant le 5-gec regroupant les groupes 4 et 5
+    if(number_gene_actif[i-2]>=4)
+      gr5[i-2]="4-5"
+    else
+      gr5[i-2]=number_gene_actif[i-2]
+      }
+  
+  sample_GEC=data.frame(id_sample=colnames(data)[-(1:2)],number_gene_actif,gr2_1,gr2_2,gr3,gr5)
+
+   return(sample_GEC) 
+}
+```
+
+## fonction pour afficher les courbes de survie du GEC
+
+```{r,dpi=300}
+#,fig.width=1.9,fig.height=1.9}
+surv_plot=function(data,cores){
+library(survival)
+temps=as.double(cores$os_months)
+censure= as.double(cores$os_censor)
+base=Surv(temps,censure)
+#par(mfrow=c(2,2))
+gec_cox=summary(coxph(formula = base~data$number_gene_actif))
+gec_logrank=survfit(base~data$number_gene_actif)
+plot(gec_logrank,col=c(1:6),cex.main=0.9,main=paste0(" \n \n \n",cores$main_gse_number[1],"\n p-val cox : ",round(gec_cox$waldtest[3],15),"\n p-val logrank : ",round(gec_cox$sctest[3],15),"\n hazard ratio :",round(gec_cox$coefficients[2],2),"\n c-index : ", round(gec_cox$concordance[1],2)),xlab = "Time in months",lwd=2,ylab = "overall survival",xlim=c(0,100))
+legend(x="bottomright", legend=paste0("Patients exprimant ",c("0 des gènes  (n=","1 des gènes  (n=","2 des gènes (n=","3 des gènes  (n=","4 des gènes  (n=","5 des gènes  (n="),gec_logrank$n,")"), col=c(1:6),lty=1,cex=0.7,lwd=2)
+############################
+gec_gr3_cox=summary(coxph(formula = base~data$gr3))
+gec_gr3_logrank=survfit(base~data$gr3)
+plot(gec_gr3_logrank,col=c("blue","grey","red"),cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60))
+#,main=paste0(" \n \n \n",cores$main_gse_number[1],"\n p-val cox : ",round(gec_cox$waldtest[3],15),"\n p-val logrank : ",round(gec_gr3_cox$sctest[3],15),"\n hazard ratio :",round(gec_gr3_cox$coefficients[2],2),"\n c-index : ", round(gec_gr3_cox$concordance[1],2)),xlab = "Time in months")
+legend(x="right", legend=paste0(c("GEC 0 (n=","1-2 (n=","GEC 3-5 (n="),gec_gr3_logrank$n,")"), col=c("blue","grey","red"),lty=1,cex=1.3,lwd=3,text.col=c("blue","grey","red"))
+############################
+gec_gr2_cox=summary(coxph(formula = base~data$gr2_1))
+gec_gr2_logrank=survfit(base~data$gr2_1)
+plot(gec_gr2_logrank,col=c(3,2),cex.main=0.9,main=paste0(" \n \n \n",cores$main_gse_number[1],"\n p-val cox : ",round(gec_cox$waldtest[3],15),"\n p-val logrank : ",round(gec_gr2_cox$sctest[3],10),"\n hazard ratio :",round(gec_gr2_cox$coefficients[2],10),"\n c-index : ", round(gec_gr2_cox$concordance[1],2)),xlab = "Time in months")
+legend(x="topright", legend=paste0(c("0 (n=","1-5 (n="),gec_gr2_logrank$n,")"), col=c(3,2),lty=1,cex=0.6,text.col=c("blue"))
+############################
+gec_gr2_cox=summary(coxph(formula = base~data$gr2_2))
+gec_gr2_logrank=survfit(base~data$gr2_2)
+plot(gec_gr2_logrank,col=c("blue","red"),cex.axis=1.3,lty=1,lwd = 2,xlab = "Time in months",xlim=c(0,60),cex.main=0.9,main=paste0(" \n \n \n",cores$main_gse_number[1],"\n p-val cox : ",round(gec_cox$waldtest[3],7),"\n p-val logrank : ",round(gec_gr2_cox$sctest[3],7),"\n hazard ratio :",round(gec_gr2_cox$coefficients[2],2),"\n c-index : ", round(gec_gr2_cox$concordance[1],2)))
+legend(x="bottomleft", legend=paste0(c("0-1 (n=","2-5 (n="),gec_gr2_logrank$n,")"), col=c("blue","red"),lty=1,cex=1.3,lwd=3)
+############################
+gec_gr2_cox=summary(coxph(formula = base~data$gr5))
+gec_gr2_logrank=survfit(base~data$gr5)
+plot(gec_gr2_logrank,col=c(1:5),cex.axis=1.3,lty=1,lwd = 2,xlab = "Time in months",xlim=c(0,60))#,cex.main=0.9,main=paste0(" \n \n \n",cores$main_gse_number[1],"\n p-val cox : ",round(gec_cox$waldtest[3],15),"\n p-val logrank : ",round(gec_gr2_cox$sctest[3],10),"\n hazard ratio :",round(gec_gr2_cox$coefficients[2],2),"\n c-index : ", round(gec_gr2_cox$concordance[1],2)))
+legend(x="topright", legend=paste0(c("0 (n=","1 (n=","2 (n=","3 (n=","4-5 (n="),gec_gr2_logrank$n,")"), col=c(1:5),lty=1,cex=1,lwd=2)
+}
+```
+
+## B-ALL & T-ALL
+```{r,fig.width=2,fig.height=2,dpi=300}
+## B-ALL
+gec_ALL=GEC_5(data_ALL[,1:174])
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_ALL[1:172,"GEC5_2"]=gec_ALL$gr2_2
+cores_ALL[1:172,"GEC5_3"]=gec_ALL$gr3
+cores_ALL[1:172,"GEC_5"]=gec_ALL$gr5
+cores_ALL[1:172,"number_gene_actifs"]=gec_ALL$number_gene_actif
+surv_plot(gec_ALL,cores_ALL[1:172,])
+##################
+## T-ALL
+gec_ALL=GEC_5(data_ALL[,-(3:174)])
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_ALL[-(1:172),"GEC5_2"]=gec_ALL$gr2_2
+cores_ALL[-(1:172),"GEC5_3"]=gec_ALL$gr3
+cores_ALL[-(1:172),"GEC_5"]=gec_ALL$gr5
+cores_ALL[-(1:172),"number_gene_actifs"]=gec_ALL$number_gene_actif
+surv_plot(gec_ALL,cores_ALL[-(1:172),])
+```
+
+
+## cox with GEC dataset GSE106291
+```{r,fig.width=2,fig.height=2,dpi=300}
+#gec_GSE106291=GEC_5(data_GSE106291)
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_GSE106291[,"GEC5_2"]=gec_GSE106291$gr2_2
+cores_GSE106291[,"GEC5_3"]=gec_GSE106291$gr3
+cores_GSE106291[,"GEC_5"]=gec_GSE106291$gr5
+cores_GSE106291[,"number_gene_actifs"]=gec_GSE106291$number_gene_actif
+surv_plot(gec_GSE106291,cores_GSE106291)
+```
+
+
+# VALIDATION
+## cox with GEC dataset BEATAML
+```{r,fig.width=2,fig.height=2,dpi=300}
+gec_BEATAML=GEC_5(data_BEATAML)
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_BEATAML[,"GEC5_2"]=gec_BEATAML$gr2_2
+cores_BEATAML[,"GEC5_3"]=gec_BEATAML$gr3
+cores_BEATAML[,"number_gene_actifs"]=gec_BEATAML$number_gene_actif
+surv_plot(gec_BEATAML,cores_BEATAML)
+```
+## cox with GEC dataset GSE37642
+```{r,fig.width=2,fig.height=2,dpi=300}
+gec_GSE37642=GEC_5(data_GSE37642)
+surv_plot(gec_GSE37642,cores_GSE37642)
+```
+# TEST
+
+##cox with GEC dataset TCGA LAM
+```{r,fig.width=2,fig.height=2,dpi=300}
+gec_TCGA_LAML=GEC_5(data_TCGA_LAML)
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_TCGA_LAML[,"GEC5_2"]=gec_TCGA_LAML$gr2_2
+cores_TCGA_LAML[,"GEC5_3"]=gec_TCGA_LAML$gr3
+cores_TCGA_LAML[,"number_gene_actifs"]=gec_TCGA_LAML$number_gene_actif
+surv_plot(gec_TCGA_LAML,cores_TCGA_LAML)
+```
+## cox with GEC dataset target aml
+```{r,fig.width=2,fig.height=2,dpi=300}
+gec_target_aml=GEC_5(data_target_aml)
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_target_aml[,"GEC5_2"]=gec_target_aml$gr2_2
+cores_target_aml[,"GEC5_3"]=gec_target_aml$gr3
+cores_target_aml[,"number_gene_actifs"]=gec_target_aml$number_gene_actif
+surv_plot(gec_target_aml,cores_target_aml)
+```
+## cox with GEC dataset TRANSCRI_CHU
+```{r,fig.width=3,fig.height=3}
+gec_TRANSCRI_CHU=GEC_5(data_TRANSCRI_CHU)
+##On rajoute les colonnes de GEC sur le dataset d'origine
+cores_TRANSCRI_CHU[,"GEC5_2"]=gec_TRANSCRI_CHU$gr2_2
+cores_TRANSCRI_CHU[,"GEC5_3"]=gec_TRANSCRI_CHU$gr3
+cores_TRANSCRI_CHU[,"number_gene_actifs"]=gec_TRANSCRI_CHU$number_gene_actif
+surv_plot(gec_TRANSCRI_CHU,cores_TRANSCRI_CHU)
+```
+
+```{r}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+gec_gr2_cox=summary(coxph(formula = base~gec_GSE106291$gr5))
+gec_gr2_logrank=survfit(base~gec_GSE106291$gr5)
+```
+
+
+## Récupération des pvaleurs, hazard ratio et taille des echantillons
+```{r}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+pval_table=data.frame(matrix(ncol=3))
+colnames(pval_table)=c("groupe","dataset","pval_logrank")
+#gec_cox=summary(coxph(formula = base~gec_GSE106291$number_gene_actif))
+gec_hr_cox=summary(coxph(formula = base~gec_GSE106291$gr5))
+#gec_logrank=survfit(base~gec_GSE106291$gr5)
+#pval_table[1,]=c("gec 4 groupe","GSE106291",round(gec_cox$waldtest[3],15),round(gec_hr_cox$coefficients[2],2),round(gec_hr_cox$sctest[3],15))
+```
+
+
+###’ Intermediare eln vs gec5_2 GSE106291
+**Ici on prend les patients de la classification intermediaire et on regarde si le gec marche.**
+```{r,fig.width=2,fig.height=2,dpi=300}
+##################################################
+####### age >60ans et <70 ans GSE106291
+#par(mfrow=c(2,2))
+cores_60_70=cores_GSE106291[as.double(cores_GSE106291$age_min)>60,]
+temps=as.double(cores_60_70$os_months[as.double(cores_60_70$age_min)<=70])
+censure= as.double(cores_60_70$os_censor[as.double(cores_60_70$age_min)<=70])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_60_70$number_gene_actifs[as.double(cores_60_70$age_min)<=70]))
+gec_interm_logrank=survfit(base~cores_60_70$GEC5_2[as.double(cores_60_70$age_min)<=70])
+pval_table[1,]=c("groupe 60-70 ans","GSE106291",1-pchisq(survdiff(base~cores_60_70$GEC5_2[as.double(cores_60_70$age_min)<=70],rho=0)$chisq,1))
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1.3,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," 60<âge<70 "
+,"\n p-val logrank : ",round(as.double(pval_table$pval_logrank[1]),5)),ylab = "Overall survival")
+#,main=paste0(" \n \n \n",cores_GSE106291$main_gse_number[1]," Age ≤ 60 ans \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),lty=1,cex=1.3,lwd = 3)
+###################################################
+####### enl dans le groupe intermediare GSE106291
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$eln2017=="Intermediate"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$eln2017=="Intermediate"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$eln2017=="Intermediate"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$eln2017=="Intermediate"])
+pval_table[2,]=c("groupe eln2017 intermediaire ans","GSE106291",1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$eln2017=="Intermediate"],rho=0)$chisq,1))
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1.3
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," eln2017 Intermédiaire"
+,"\n p-val logrank : ",round(as.double(pval_table$pval_logrank[2]),5)),ylab = "Overall survival")
+#"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),(gec_interm_cox$waldtest[3],5))
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1.3,lwd=3)
+
+#####################################################
+####### cn-aml GSE106291
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$cytogenetics=="CN-AML"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$cytogenetics=="CN-AML"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$cytogenetics=="CN-AML"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$cytogenetics=="CN-AML"])
+pval_table[3,]=c("groupe cn-aml","GSE106291",1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$cytogenetics=="CN-AML"],rho=0)$chisq,1))
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1.3,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," Caryotype normal "
+,"\n p-val logrank : ",round(as.double(pval_table$pval_logrank[3]),5)),ylab = "Overall survival")
+
+#,main=paste0(" \n \n \n",cores_GSE106291$main_gse_number[1]," caryotype noraml \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),lty=1,cex=1.3,lwd = 3)
+
+############################################
+
+```
+
+```{r}
+pval_table
+```
+
+
+### cn-aml vs gec5_2
+**Ici on prend les patients avec un caryotype et on regarde si le gec marche.**
+
+### cn-aml vs gec5_2
+**Ici on regarde si le gec marche dans le groupe des moins de 60 ans et des plus de plus de 60 ans**
+```{r,fig.width=3,fig.height=3,dpi=300}
+#################################
+####### enl dans le groupe intermediare BEATAML
+temps=as.double(cores_BEATAML$os_months[cores_BEATAML$ELN2017=="Intermediate"])
+censure= as.double(cores_BEATAML$os_censor[cores_BEATAML$ELN2017=="Intermediate"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_BEATAML$number_gene_actifs[cores_BEATAML$ELN2017=="Intermediate"]))
+gec_interm_logrank=survfit(base~cores_BEATAML$GEC5_2[cores_BEATAML$ELN2017=="Intermediate"])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,xlab = "Time in months",lwd = 3,main=paste0(cores_BEATAML$main_gse_number[1]," eln Intermédiaire  "))#round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)))
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),cex=1.3,lwd=3)
+
+####### enl dans le groupe intermediare TRANCRI LAM
+temps=as.double(cores_TRANSCRI_CHU$os_months[cores_TRANSCRI_CHU$pronostic_selon_la_classification_eln_2017=="Intermédiaire"])
+censure= as.double(cores_TRANSCRI_CHU$os_censor[cores_TRANSCRI_CHU$pronostic_selon_la_classification_eln_2017=="Intermédiaire"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_TRANSCRI_CHU$number_gene_actifs[cores_TRANSCRI_CHU$pronostic_selon_la_classification_eln_2017=="Intermédiaire"]))
+gec_interm_logrank=survfit(base~cores_TRANSCRI_CHU$GEC5_2[cores_TRANSCRI_CHU$pronostic_selon_la_classification_eln_2017=="Intermédiaire"])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,main=paste0(cores_TRANSCRI_CHU$main_gse_number[1]," eln Intermédiaire "),xlab = "Time in months",lwd = 3)
+                                                            #,round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)))#,conf.int = TRUE)
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),cex=1.3,lwd=3) 
+####### cn-aml TRANCRI LAM
+temps=as.double(cores_TRANSCRI_CHU$os_months[cores_TRANSCRI_CHU$caryotype_normal==TRUE])
+censure= as.double(cores_TRANSCRI_CHU$os_censor[cores_TRANSCRI_CHU$caryotype_normal==TRUE])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_TRANSCRI_CHU$number_gene_actifs[cores_TRANSCRI_CHU$caryotype_normal==TRUE]))
+gec_interm_logrank=survfit(base~cores_TRANSCRI_CHU$GEC5_2[cores_TRANSCRI_CHU$caryotype_normal==TRUE])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,main=paste0(" \n \n \n",cores_TRANSCRI_CHU$main_gse_number[1]," caryotype normal \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")#,conf.int = TRUE)
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),lty=1,cex=0.6)
+
+####### cn-aml TRANCRI LAM
+temps=as.double(cores_TRANSCRI_CHU$os_months[as.double(cores_TRANSCRI_CHU$age_min)<=60])
+censure= as.double(cores_TRANSCRI_CHU$os_censor[as.double(cores_TRANSCRI_CHU$age_min)<=60])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_TRANSCRI_CHU$number_gene_actifs[as.double(cores_TRANSCRI_CHU$age_min)<=60]))
+gec_interm_logrank=survfit(base~cores_TRANSCRI_CHU$GEC5_2[as.double(cores_TRANSCRI_CHU$age_min)<=60])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,main=paste0(" \n \n \n",cores_TRANSCRI_CHU$main_gse_number[1]," Age ≤ 60 ans \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")#,conf.int = TRUE)
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),lty=1,cex=0.6)
+####### age > 60 ans GSE106291
+temps=as.double(cores_GSE106291$os_months[as.double(cores_GSE106291$age_min)>60])
+censure= as.double(cores_GSE106291$os_censor[as.double(cores_GSE106291$age_min)>60])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[as.double(cores_GSE106291$age_min)>60]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[as.double(cores_GSE106291$age_min)>60])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,main=paste0(" \n \n \n",cores_GSE106291$main_gse_number[1]," Age > 60 ans \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),lty=1,cex=0.6)
+
+####### cn-aml TRANCRI LAM
+temps=as.double(cores_TRANSCRI_CHU$os_months[as.double(cores_TRANSCRI_CHU$age_min)>60])
+censure= as.double(cores_TRANSCRI_CHU$os_censor[as.double(cores_TRANSCRI_CHU$age_min)>60])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_TRANSCRI_CHU$number_gene_actifs[as.double(cores_TRANSCRI_CHU$age_min)>60]))
+gec_interm_logrank=survfit(base~cores_TRANSCRI_CHU$GEC5_2[as.double(cores_TRANSCRI_CHU$age_min)>60])
+plot(gec_interm_logrank,col=c(5,2),cex.main=0.9,main=paste0(" \n \n \n",cores_TRANSCRI_CHU$main_gse_number[1]," Age > 60 ans \n p-val cox : ",round(gec_interm_cox$waldtest[3],5),"\n p-val logrank : ",round(gec_interm_cox$sctest[3],5),"\n hazard ratio :",round(gec_interm_cox$coefficients[2],2),"\nc-index : ", round(gec_interm_cox$concordance[1],2)),xlab = "Time in months")#,conf.int = TRUE)
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c(5,2),lty=1,cex=0.6)
+```
+
+
+## survie en fonction de enl
+```{r,warning=FALSE}
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+#gec_enl=coxph(formula = base~cores_GSE106291$eln2017)
+#gec_enl
+enl_logrank=survfit(base~cores_GSE106291$eln2017)
+plot(enl_logrank)
+```
+
+## GEC vs age et sex et enl dataset GSE106291
+```{r,warning=FALSE}
+library(survival)
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+gec_age_sex=coxph(formula = base~gec_GSE106291$gr2_2+as.double(cores_GSE106291$age_min)+cores_GSE106291$sex+cores_GSE106291$eln2017)
+gec_age_sex
+cox.zph(gec_age_sex)
+plot(cox.zph(gec_age_sex))
+#cox_1gene_age$waldtest[3]
+```
+
+## Groupes  GEC0 et GEC3-5 pour l'analyse GSEA.
+
+```{r}
+head(gec_GSE106291)
+## on commence par prendre tous les échantillons du groupe 0 et du groupe 3-5
+```
+
+
+
+
+## mutation npm1
+```{r,fig.height=2.5,fig.width=2.5}
+par(mfrow=c(2,2))
+pie(table(cores_GSE106291$npm1),col=c("grey","green"),main="Mutattion npm1 \n GSE106291",cex.main=1,labels=paste0(c("NO (","YES (" ),c(157,80),")"),radius=1.)
+
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_npm1=summary(coxph(formula = base~cores_GSE106291$npm1))
+logrank_npm1=survfit(base~cores_GSE106291$npm1)
+#pval=cox_npm1$sctest[3]
+plot(logrank_npm1,col=c("grey","green"),cex.main=1,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," Mutation NPM1 "
+,"\n p-val logrank : ",round(cox_npm1$sctest[3],5)),ylab = "Overall survival")
+legend(x="topright", legend=paste0(c("NO (n=","YES (n="),logrank_npm1$n,")"), col=c("grey","green"),lty=1,cex=1,lwd=2)
+############ gec entre ces deux groupes
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$npm1=="NO"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$npm1=="NO"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$npm1=="NO"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$npm1=="NO"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$npm1=="NO"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," npm1 non muté"
+,"\n p-val logrank : ",round(pval,5)),ylab = "Overall survival",col.main="grey")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+
+####################
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$npm1=="YES"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$npm1=="YES"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$npm1=="YES"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$npm1=="YES"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$npm1=="YES"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," npm1 muté"
+,"\n p-val logrank : ",round(pval,5)),ylab = "Overall survival",col.main="green")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+
+```
+
+
+## mutation RUNX1
+
+```{r,fig.height=2.5,fig.width=2.5}
+par(mfrow=c(2,2))
+pie(table(cores_GSE106291$npm1),col=c("grey","green"),main="Mutattion RUNX1 \n GSE106291",cex.main=1,labels=paste0(c("NO (","YES (" ),c(192,45),")"),radius=1.)
+
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_runx1=summary(coxph(formula = base~cores_GSE106291$runx1))
+logrank_runx1=survfit(base~cores_GSE106291$runx1)
+#pval=cox_npm1$sctest[3]
+plot(logrank_runx1,col=c("grey","green"),cex.main=1,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," Mutation RUNX1 "
+,"\n p-val logrank : ",round(cox_npm1$sctest[3],5)),ylab = "Overall survival")
+legend(x="topright", legend=paste0(c("NO (n=","YES (n="),logrank_runx1$n,")"), col=c("grey","green"),lty=1,cex=1,lwd=2)
+############ gec entre ces deux groupes
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$runx1=="NO"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$runx1=="NO"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$runx1=="NO"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="NO"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="NO"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," runx1 non muté"
+,"\n p-val logrank : ",round(pval,10)),ylab = "Overall survival",col.main="grey")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+
+####################
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$runx1=="YES"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$runx1=="YES"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$runx1=="YES"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="YES"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="YES"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," runx1 muté"
+,"\n p-val logrank : ",round(pval,5)),ylab = "Overall survival",col.main="green")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+```
+
+## mutation du gène tp53
+18 mutation sur 250
+```{r,fig.height=2.5,fig.width=2.5}
+par(mfrow=c(2,2))
+pie(table(cores_GSE106291$tp53),col=c("grey","green"),main="Mutattion tp53 \n GSE106291",cex.main=1,labels=paste0(c("NO (","YES (" ),c(219,18),")"),radius=0.95)
+
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_runx1=summary(coxph(formula = base~cores_GSE106291$runx1))
+logrank_runx1=survfit(base~cores_GSE106291$runx1)
+#pval=cox_npm1$sctest[3]
+plot(logrank_runx1,col=c("grey","green"),cex.main=1,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," Mutation RUNX1 "
+,"\n p-val logrank : ",round(cox_npm1$sctest[3],5)),ylab = "Overall survival")
+legend(x="topright", legend=paste0(c("NO (n=","YES (n="),logrank_runx1$n,")"), col=c("grey","green"),lty=1,cex=1,lwd=2)
+############ gec entre ces deux groupes
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$runx1=="NO"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$runx1=="NO"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$runx1=="NO"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="NO"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="NO"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," runx1 non muté"
+,"\n p-val logrank : ",round(pval,10)),ylab = "Overall survival",col.main="grey")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+
+####################
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$runx1=="YES"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$runx1=="YES"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$runx1=="YES"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="YES"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$runx1=="YES"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," runx1 muté"
+,"\n p-val logrank : ",round(pval,5)),ylab = "Overall survival",col.main="green")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+```
+
+## mutation de dnmt3a
+
+```{r,fig.height=2.5,fig.width=2.5}
+par(mfrow=c(2,2))
+pie(table(cores_GSE106291$dnmt3a),col=c("grey","green"),main="Mutation dnmt3a \n GSE106291",cex.main=1,labels=paste0(c("NO (","YES (" ),c(160,77),")"),radius=1.)
+
+temps=as.double(cores_GSE106291$os_months)
+censure= as.double(cores_GSE106291$os_censor)
+base=Surv(temps,censure)
+cox_dnmt3a=summary(coxph(formula = base~cores_GSE106291$dnmt3a))
+logrank_dnmt3a=survfit(base~cores_GSE106291$dnmt3a)
+#pval=cox_npm1$sctest[3]
+plot(logrank_dnmt3a,col=c("grey","green"),cex.main=1,cex.axis=1.3,lty=1,lwd = 3,xlab = "Time in months",xlim=c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," Mutation DNMT3A "
+,"\n p-val logrank : ",round(cox_dnmt3a$sctest[3],5)),ylab = "Overall survival")
+legend(x="topright", legend=paste0(c("NO (n=","YES (n="),logrank_dnmt3a$n,")"), col=c("grey","green"),lty=1,cex=1,lwd=2)
+############ gec entre ces deux groupes
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$dnmt3a=="NO"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$dnmt3a=="NO"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$dnmt3a=="NO"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$dnmt3a=="NO"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$dnmt3a=="NO"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," dnmt3a non muté"
+,"\n p-val logrank : ",round(pval,10)),ylab = "Overall survival",col.main="grey")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+
+####################
+temps=as.double(cores_GSE106291$os_months[cores_GSE106291$dnmt3a=="YES"])
+censure= as.double(cores_GSE106291$os_censor[cores_GSE106291$dnmt3a=="YES"])
+base=Surv(temps,censure)
+gec_interm_cox=summary(coxph(formula = base~cores_GSE106291$number_gene_actifs[cores_GSE106291$dnmt3a=="YES"]))
+gec_interm_logrank=survfit(base~cores_GSE106291$GEC5_2[cores_GSE106291$dnmt3a=="YES"])
+pval=1-pchisq(survdiff(base~cores_GSE106291$GEC5_2[cores_GSE106291$dnmt3a=="YES"],rho=0)$chisq,1)
+plot(gec_interm_logrank,col=c("blue","red"),cex.main=1
+     ,xlab = "Time in months",lwd=3,xlim = c(0,60),main=paste0(cores_GSE106291$main_gse_number[1]," dnmt3a muté"
+,"\n p-val logrank : ",round(pval,5)),ylab = "Overall survival",col.main="green")
+legend(x="topright", legend=paste0(c("0-1 (n=","2-5 (n="),gec_interm_logrank$n,")"), col=c("blue","red"),cex=1,lwd=3)
+```
+
+
+
