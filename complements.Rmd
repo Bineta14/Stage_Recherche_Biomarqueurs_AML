@@ -1,0 +1,29 @@
+---
+title: "figures complémentaires"
+author: "Bineta  Faye"
+date: "8/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Graphiques
+
+```{r,warning=FALSE}
+frequence <- read.csv("~/Desktop/Stage_biomarqueurs/frequence.csv")
+head(frequence)
+x=seq(0,100,by=5)
+y=c()
+for(i in 1:length(x)){
+  y[i]=length(which(frequence$freq_BM_tumoral>=x[i]))
+}
+```
+
+```{r}
+barplot(y,x)
+```
+
+
+
